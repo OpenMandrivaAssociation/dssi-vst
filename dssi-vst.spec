@@ -123,13 +123,13 @@ cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh << EOF
 if ( \${?VST_PATH} ) then
    exit
 endif
-setenv VST_PATH $HOME/plugins/win32-vst
+setenv VST_PATH \$HOME/plugins/win32-vst
 EOF
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh << EOF
 # Set VST_PATH for Bash shell
 if [ -n "\$VST_PATH" ]; then
-   export VST_PATH="$HOME/plugins/win32-vst"
+   export VST_PATH="\$HOME/plugins/win32-vst"
 fi
 EOF
 
