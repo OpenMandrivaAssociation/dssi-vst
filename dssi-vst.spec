@@ -13,18 +13,24 @@ Source0:        http://downloads.sourceforge.net/project/dssi/dssi-vst/0.8/%{nam
 Source1:        dssi-vst-loader
 Patch0:         %{name}-0.8-cstdio.patch
 URL:            http://breakfastquay.com/dssi-vst/
+ExclusiveArch:  %{ix86} x86_64
 
 License:        GPLv2
 Group:          Sound
-BuildRequires:  libwine-devel >= 1.1
-BuildRequires:  liblo-devel >= 0.26
+BuildRequires:  liblo-devel
 BuildRequires:  libstdc++-devel
-BuildRequires:  alsa-lib-devel >= 1.0
+BuildRequires:  alsa-lib-devel
 BuildRequires:  dssi-devel
 BuildRequires:  ladspa-devel
 BuildRequires:  libjack-devel
 
-Requires:       %{libname} >= %{version}
+# From Fedora: The -wine subpackage will only be built on ix86
+%ifarch %{ix86}
+BuildRequires: wine-devel
+%endif
+
+# Both packages depend on each other
+Requires:      %{name}-wine = %{version}-%{release}
 
 %description
 dssi-vst enables any compliant DSSI or LADSPA host to use VST instruments
@@ -37,24 +43,34 @@ myhome/plugins/win32-vst
 However, this library does not use VST headers, and is absolutely free.
 
 #=====================================
-%package -n %{libname}
-Summary:    permits using windows VST audio plugins as DSSI plugins
-License:    GPL
-Group:      System/Libraries
-Requires:   wine >= 1.1,libwine1 >= 1.1
-Provides:   lib%{name} = %{version}
+# From Fedora: The -wine subpackage will only be built on i586
+%ifarch %{ix86}
+%package wine
+Summary:       VST plugins wrapper
+Group:         System/Libraries
+Requires:      %{name} = %{version}-%{release}
 
-%description -n %{libname}
-This library can be used by programs to run windows VST audio plugins 
-under linux as LADSPA or DSSI plugins.
+%description wine
+This package provides two 32bit executables necessary for using dssi-vst
+even on 64bit platforms.
+dssi-vst enables any compliant DSSI or LADSPA host to use VST instruments
+and effects as plugins. They will recognize VSTs placed in the user's
+
+myhome/plugins/win32-vst
+
 'VST is a trademark of Steinberg Media Technologies GmbH'
 
 However, this library does not use VST headers, and is absolutely free.
 
-%files -n %{libname}
-%defattr(-,root,root)
-%{_libdir}/dssi/*
-%{_libdir}/ladspa/%{name}.so
+
+%files wine
+%defattr(-,root,root,-)
+%dir %{_libdir}/dssi/
+%dir %{_libdir}/dssi/%{name}/
+%{_libdir}/dssi/%{name}/%{name}-scanner*
+%{_libdir}/dssi/%{name}/%{name}-server*
+
+%endif
 
 #=====================================
 
@@ -63,36 +79,41 @@ However, this library does not use VST headers, and is absolutely free.
 %patch0 -p1
 
 %build
-make \
-    DSSIDIR=%{_libdir}/dssi \
-    BINDIR=%{_bindir} \
-    LADSPADIR=%{_libdir}/ladspa \
-    CXXFLAGS=-I./vestige 
 
-# correct executable filenames if wineg++ >= 4.3
+%ifarch %{ix86}
+#build all targets only on i586
+%make CXXFLAGS="-fPIC -Ivestige"
+
 %if %mdkversion > 200900
+# correct executable filenames if wineg++ >= 4.3
 mv dssi-vst-server.exe dssi-vst-server
 mv dssi-vst-scanner.exe dssi-vst-scanner
 %endif
 
+%else
+# From Fedora: On x86_64, build non-wine parts only:
+make \
+     dssi-vst.so vsthost dssi-vst_gui \
+    CXXFLAGS="-fPIC -Ivestige"
+%endif
+
 %install
 rm -rf %{buildroot}
-make install \
-    DESTDIR=%{buildroot} \
-    DSSIDIR=%{buildroot}%{_libdir}/dssi \
+%ifarch %{ix86}
+make  DSSIDIR=%{buildroot}%{_libdir}/dssi   \
     LADSPADIR=%{buildroot}%{_libdir}/ladspa \
-    BINDIR=%{buildroot}%{_bindir} \
-
-%__strip %{buildroot}%{_libdir}/dssi/%{name}/*.so
-%__strip %{buildroot}%{_libdir}/dssi/%{name}/dssi-vst_gui
-%__strip %{buildroot}%{_libdir}/dssi/%{name}.so
-%__strip %{buildroot}%{_libdir}/ladspa/%{name}.so
-
-install -d %buildroot/%{_bindir}/
-install -m 755 runvst.sh %buildroot/%{_libdir}/dssi/%{name}/runvst.sh
-install -m 755 %{SOURCE1} %buildroot/%{_bindir}/dssi-vst-loader
-
-chmod 755 %buildroot%{_bindir}/dssi-vst-loader
+       BINDIR=%{buildroot}%{_bindir}        \
+    install
+rm -f %{buildroot}%{_libdir}/ladspa/*
+%else
+mkdir -p %{buildroot}%{_libdir}/dssi/%{name} \
+         %{buildroot}%{_bindir}              \
+         %{buildroot}%{_libdir}/ladspa
+install -pm 755 vsthost %{buildroot}%{_bindir}
+install -pm 755 %{name}.so %{buildroot}%{_libdir}/dssi/
+install -pm 755 %{name}_gui %{buildroot}%{_libdir}/dssi/%{name}/
+%endif
+ln -s ../dssi/%{name}.so %{buildroot}%{_libdir}/ladspa
 
 install -d -m 755 %{buildroot}%{_sysconfdir}/profile.d
 
@@ -116,8 +137,12 @@ EOF
 rm -rf %{buildroot}
 
 %files
-%defattr(-,root,root,0755)
+%defattr(-,root,root,-)
 %doc README
 %{_bindir}/*
-%config(noreplace) %attr(755,root,root) %{_sysconfdir}/profile.d/dssi-vst.sh
-%config(noreplace) %attr(755,root,root) %{_sysconfdir}/profile.d/dssi-vst.csh
+%{_libdir}/dssi/%{name}.so
+%{_libdir}/dssi/%{name}/
+%{_libdir}/ladspa/%{name}.so
+%config(noreplace) %attr(644,root,root) %{_sysconfdir}/profile.d/dssi-vst.sh
+%config(noreplace) %attr(644,root,root) %{_sysconfdir}/profile.d/dssi-vst.csh
+
