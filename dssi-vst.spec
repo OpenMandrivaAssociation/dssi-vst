@@ -1,6 +1,6 @@
 %define name            dssi-vst
 %define version         0.8
-%define release         %mkrel 1
+%define release         %mkrel 2
 
 Name:           %{name}
 Summary:        DSSI and LADSPA plugin wrapper for VST plugins
@@ -20,6 +20,8 @@ BuildRequires:  dssi-devel
 BuildRequires:  ladspa-devel
 BuildRequires:  libjack-devel
 
+Requires:       dssi
+
 # From Fedora: The -wine subpackage will only be built on ix86
 %ifarch %{ix86}
 BuildRequires: wine-devel
@@ -33,6 +35,9 @@ dssi-vst enables any compliant DSSI or LADSPA host to use VST instruments
 and effects as plugins. They will recognize VSTs placed in the user's
 
 myhome/plugins/win32-vst
+
+Note:
+x86_64 users also need the dssi-vst-wine package from the i586 repository.
 
 'VST is a trademark of Steinberg Media Technologies GmbH'
 
@@ -128,6 +133,19 @@ if [ -n "\$VST_PATH" ]; then
    export VST_PATH="\$HOME/plugins/win32-vst"
 fi
 EOF
+
+# add 32bit dssi path on x86_64 systems to find wine executables
+
+%ifarch %{ix86}
+%else
+cat  > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh << EOF
+setenv DSSI_PATH \$DSSI_PATH:/usr/lib/dssi
+EOF
+cat  > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh << EOF
+export DSSI_PATH="\$DSSI_PATH:/usr/lib/dssi"
+EOF
+%endif
+
 
 %clean
 rm -rf %{buildroot}
