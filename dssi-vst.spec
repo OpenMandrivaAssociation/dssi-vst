@@ -2,15 +2,11 @@
 %define version         0.8
 %define release         %mkrel 1
 
-%define major 0
-%define libname %mklibname %{name} %{major}
-
 Name:           %{name}
 Summary:        DSSI and LADSPA plugin wrapper for VST plugins
 Version:        %{version}
 Release:        %{release}
 Source0:        http://downloads.sourceforge.net/project/dssi/dssi-vst/0.8/%{name}-%{version}.tar.gz
-Source1:        dssi-vst-loader
 Patch0:         %{name}-0.8-cstdio.patch
 URL:            http://breakfastquay.com/dssi-vst/
 ExclusiveArch:  %{ix86} x86_64
@@ -82,7 +78,7 @@ However, this library does not use VST headers, and is absolutely free.
 
 %ifarch %{ix86}
 #build all targets only on i586
-%make CXXFLAGS="-fPIC -Ivestige"
+%make CXXFLAGS="-O3 -fPIC -Ivestige"
 
 %if %mdkversion > 200900
 # correct executable filenames if wineg++ >= 4.3
@@ -94,7 +90,7 @@ mv dssi-vst-scanner.exe dssi-vst-scanner
 # From Fedora: On x86_64, build non-wine parts only:
 make \
      dssi-vst.so vsthost dssi-vst_gui \
-    CXXFLAGS="-fPIC -Ivestige"
+    CXXFLAGS="-O3 -fPIC -Ivestige"
 %endif
 
 %install
