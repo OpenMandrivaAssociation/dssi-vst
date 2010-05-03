@@ -1,5 +1,5 @@
 %define name            dssi-vst
-%define version         0.9
+%define version         0.9.1
 %define release         %mkrel 1
 
 Name:           %{name}
@@ -7,7 +7,6 @@ Summary:        DSSI and LADSPA plugin wrapper for VST plugins
 Version:        %{version}
 Release:        %{release}
 Source0:        http://code.breakfastquay.com/attachments/download/2/%{name}-%{version}.tar.bz2
-Patch0:         %{name}-0.8-cstdio.patch
 URL:            http://breakfastquay.com/dssi-vst/
 ExclusiveArch:  %{ix86} x86_64
 
@@ -77,8 +76,7 @@ However, this library does not use VST headers, and is absolutely free.
 #=====================================
 
 %prep
-%setup -q -n %{name}
-%patch0 -p1
+%setup -q -n %{name}-%{version}
 
 %build
 
