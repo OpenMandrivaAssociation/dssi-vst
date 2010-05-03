@@ -1,12 +1,12 @@
 %define name            dssi-vst
-%define version         0.8
-%define release         %mkrel 2
+%define version         0.9
+%define release         %mkrel 1
 
 Name:           %{name}
 Summary:        DSSI and LADSPA plugin wrapper for VST plugins
 Version:        %{version}
 Release:        %{release}
-Source0:        http://downloads.sourceforge.net/project/dssi/dssi-vst/0.8/%{name}-%{version}.tar.gz
+Source0:        http://code.breakfastquay.com/attachments/download/2/%{name}-%{version}.tar.bz2
 Patch0:         %{name}-0.8-cstdio.patch
 URL:            http://breakfastquay.com/dssi-vst/
 ExclusiveArch:  %{ix86} x86_64
@@ -37,7 +37,8 @@ and effects as plugins. They will recognize VSTs placed in the user's
 myhome/plugins/win32-vst
 
 Note:
-x86_64 users also need the dssi-vst-wine package from the i586 repository.
+x86_64 users also need the dssi-vst-wine package from the i586 contrib
+repository.
 
 'VST is a trademark of Steinberg Media Technologies GmbH'
 
@@ -76,7 +77,7 @@ However, this library does not use VST headers, and is absolutely free.
 #=====================================
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n %{name}
 %patch0 -p1
 
 %build
