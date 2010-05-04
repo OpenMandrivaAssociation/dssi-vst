@@ -1,5 +1,5 @@
 %define name            dssi-vst
-%define version         0.9.1
+%define version         0.9.2
 %define release         %mkrel 1
 
 Name:           %{name}
