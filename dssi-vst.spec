@@ -1,6 +1,6 @@
 %define name            dssi-vst
 %define version         0.9.2
-%define release         %mkrel 1
+%define release         %mkrel 2
 
 Name:           %{name}
 Summary:        DSSI and LADSPA plugin wrapper for VST plugins
@@ -128,7 +128,7 @@ EOF
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh << EOF
 # Set VST_PATH for Bash shell
-if [ -n "\$VST_PATH" ]; then
+if [ -n "\\\$VST_PATH" ]; then
    export VST_PATH="\$HOME/plugins/win32-vst"
 fi
 EOF
