@@ -1,6 +1,6 @@
 %define name            dssi-vst
 %define version         0.9.2
-%define release         %mkrel 2
+%define release         %mkrel 3
 
 Name:           %{name}
 Summary:        DSSI and LADSPA plugin wrapper for VST plugins
