@@ -1,6 +1,9 @@
+%define debug_package %{nil}
+# when building debug package: *** ERROR: same build ID in nonidentical files!
+
 %define name            dssi-vst
 %define version         0.9.2
-%define release         %mkrel 3
+%define release         %mkrel 4
 
 Name:           %{name}
 Summary:        DSSI and LADSPA plugin wrapper for VST plugins
@@ -13,11 +16,10 @@ ExclusiveArch:  %{ix86} x86_64
 License:        GPLv2
 Group:          Sound
 BuildRequires:  liblo-devel
-BuildRequires:  libstdc++-devel
-BuildRequires:  alsa-lib-devel
-BuildRequires:  dssi-devel
+BuildRequires:  pkgconfig(alsa)
+BuildRequires:  pkgconfig(dssi)
 BuildRequires:  ladspa-devel
-BuildRequires:  libjack-devel
+BuildRequires:  jackit-devel
 
 Requires:       dssi
 
@@ -110,7 +112,7 @@ mkdir -p %{buildroot}%{_libdir}/dssi/%{name} \
          %{buildroot}%{_bindir}              \
          %{buildroot}%{_libdir}/ladspa
 install -pm 755 vsthost %{buildroot}%{_bindir}
-install -pm 755 %{name}.so %{buildroot}%{_libdir}/dssi/
+install -pm 644 %{name}.so %{buildroot}%{_libdir}/dssi/
 install -pm 755 %{name}_gui %{buildroot}%{_libdir}/dssi/%{name}/
 %endif
 ln -s ../dssi/%{name}.so %{buildroot}%{_libdir}/ladspa
@@ -154,7 +156,8 @@ rm -rf %{buildroot}
 %doc README
 %{_bindir}/*
 %{_libdir}/dssi/%{name}.so
-%{_libdir}/dssi/%{name}/
+%dir %{_libdir}/dssi/%{name}/
+%{_libdir}/dssi/%{name}/%{name}_gui
 %{_libdir}/ladspa/%{name}.so
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/profile.d/dssi-vst.sh
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/profile.d/dssi-vst.csh
