@@ -1,35 +1,27 @@
 %define debug_package %{nil}
 # when building debug package: *** ERROR: same build ID in nonidentical files!
 
-%define name            dssi-vst
-%define version         0.9.2
-%define release         %mkrel 4
-
-Name:           %{name}
-Summary:        DSSI and LADSPA plugin wrapper for VST plugins
-Version:        %{version}
-Release:        %{release}
-Source0:        http://code.breakfastquay.com/attachments/download/2/%{name}-%{version}.tar.bz2
-URL:            http://breakfastquay.com/dssi-vst/
-ExclusiveArch:  %{ix86} x86_64
-
-License:        GPLv2
-Group:          Sound
-BuildRequires:  liblo-devel
-BuildRequires:  pkgconfig(alsa)
-BuildRequires:  pkgconfig(dssi)
-BuildRequires:  ladspa-devel
-BuildRequires:  jackit-devel
-
-Requires:       dssi
-
-# From Fedora: The -wine subpackage will only be built on ix86
+Summary:	DSSI and LADSPA plugin wrapper for VST plugins
+Name:		dssi-vst
+Version:	0.9.2
+Release:	6
+License:	GPLv2+
+Group:		Sound
+Url:		http://breakfastquay.com/dssi-vst/
+Source0:	http://code.breakfastquay.com/attachments/download/2/%{name}-%{version}.tar.bz2
+BuildRequires:	ladspa-devel
+BuildRequires:	pkgconfig(alsa)
+BuildRequires:	pkgconfig(dssi)
+BuildRequires:	pkgconfig(jack)
+BuildRequires:	pkgconfig(liblo)
+# The -wine subpackage will only be built on ix86
 %ifarch %{ix86}
-BuildRequires: wine-devel
-%endif
-
+BuildRequires:	wine-devel
 # Both packages depend on each other
-Requires:      %{name}-wine = %{version}-%{release}
+Requires:	%{name}-wine = %{EVRD}
+%endif
+Requires:	dssi
+ExclusiveArch:	%{ix86} x86_64
 
 %description
 dssi-vst enables any compliant DSSI or LADSPA host to use VST instruments
@@ -45,13 +37,23 @@ repository.
 
 However, this library does not use VST headers, and is absolutely free.
 
-#=====================================
-# From Fedora: The -wine subpackage will only be built on i586
+%files
+%doc README
+%{_bindir}/*
+%{_libdir}/dssi/%{name}.so
+%dir %{_libdir}/dssi/%{name}/
+%{_libdir}/dssi/%{name}/%{name}_gui
+%{_libdir}/ladspa/%{name}.so
+%config(noreplace) %attr(644,root,root) %{_sysconfdir}/profile.d/dssi-vst.sh
+%config(noreplace) %attr(644,root,root) %{_sysconfdir}/profile.d/dssi-vst.csh
+
+#----------------------------------------------------------------------------
+
 %ifarch %{ix86}
 %package wine
-Summary:       VST plugins wrapper
-Group:         System/Libraries
-Requires:      %{name} = %{version}-%{release}
+Summary:	VST plugins wrapper
+Group:		System/Libraries
+Requires:	%{name} = %{EVRD}
 
 %description wine
 This package provides two 32bit executables necessary for using dssi-vst
@@ -65,52 +67,45 @@ myhome/plugins/win32-vst
 
 However, this library does not use VST headers, and is absolutely free.
 
-
 %files wine
-%defattr(-,root,root,-)
 %dir %{_libdir}/dssi/
 %dir %{_libdir}/dssi/%{name}/
 %{_libdir}/dssi/%{name}/%{name}-scanner*
 %{_libdir}/dssi/%{name}/%{name}-server*
-
 %endif
 
-#=====================================
+#----------------------------------------------------------------------------
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q
 
 %build
-
 %ifarch %{ix86}
 #build all targets only on i586
-%make CXXFLAGS="-O3 -fPIC -Ivestige"
+make CXXFLAGS="%{optflags} -fPIC -Ivestige"
 
-%if %mdkversion > 200900
 # correct executable filenames if wineg++ >= 4.3
 mv dssi-vst-server.exe dssi-vst-server
 mv dssi-vst-scanner.exe dssi-vst-scanner
-%endif
 
 %else
-# From Fedora: On x86_64, build non-wine parts only:
+# On x86_64, build non-wine parts only:
 make \
-     dssi-vst.so vsthost dssi-vst_gui \
-    CXXFLAGS="-O3 -fPIC -Ivestige"
+	dssi-vst.so vsthost dssi-vst_gui \
+	CXXFLAGS="%{optflags} -fPIC -Ivestige"
 %endif
 
 %install
-rm -rf %{buildroot}
 %ifarch %{ix86}
-make  DSSIDIR=%{buildroot}%{_libdir}/dssi   \
-    LADSPADIR=%{buildroot}%{_libdir}/ladspa \
-       BINDIR=%{buildroot}%{_bindir}        \
-    install
+make DSSIDIR=%{buildroot}%{_libdir}/dssi   \
+	LADSPADIR=%{buildroot}%{_libdir}/ladspa \
+	BINDIR=%{buildroot}%{_bindir}        \
+	install
 rm -f %{buildroot}%{_libdir}/ladspa/*
 %else
 mkdir -p %{buildroot}%{_libdir}/dssi/%{name} \
-         %{buildroot}%{_bindir}              \
-         %{buildroot}%{_libdir}/ladspa
+	%{buildroot}%{_bindir}              \
+	%{buildroot}%{_libdir}/ladspa
 install -pm 755 vsthost %{buildroot}%{_bindir}
 install -pm 644 %{name}.so %{buildroot}%{_libdir}/dssi/
 install -pm 755 %{name}_gui %{buildroot}%{_libdir}/dssi/%{name}/
@@ -119,7 +114,7 @@ ln -s ../dssi/%{name}.so %{buildroot}%{_libdir}/ladspa
 
 install -d -m 755 %{buildroot}%{_sysconfdir}/profile.d
 
-#prepare VST_PATH definition in user profile 
+#prepare VST_PATH definition in user profile
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh << EOF
 # Set VST_PATH for csh
 if ( \${?VST_PATH} ) then
@@ -136,9 +131,7 @@ fi
 EOF
 
 # add 32bit dssi path on x86_64 systems to find wine executables
-
-%ifarch %{ix86}
-%else
+%ifarch x86_64
 cat  > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh << EOF
 setenv DSSI_PATH \$DSSI_PATH:/usr/lib/dssi
 EOF
@@ -146,19 +139,4 @@ cat  > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh << EOF
 export DSSI_PATH="\$DSSI_PATH:/usr/lib/dssi"
 EOF
 %endif
-
-
-%clean
-rm -rf %{buildroot}
-
-%files
-%defattr(-,root,root,-)
-%doc README
-%{_bindir}/*
-%{_libdir}/dssi/%{name}.so
-%dir %{_libdir}/dssi/%{name}/
-%{_libdir}/dssi/%{name}/%{name}_gui
-%{_libdir}/ladspa/%{name}.so
-%config(noreplace) %attr(644,root,root) %{_sysconfdir}/profile.d/dssi-vst.sh
-%config(noreplace) %attr(644,root,root) %{_sysconfdir}/profile.d/dssi-vst.csh
 
