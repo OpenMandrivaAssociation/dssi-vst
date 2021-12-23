@@ -1,4 +1,3 @@
-%define debug_package %{nil}
 # when building debug package: *** ERROR: same build ID in nonidentical files!
 
 Summary:	DSSI and LADSPA plugin wrapper for VST plugins
