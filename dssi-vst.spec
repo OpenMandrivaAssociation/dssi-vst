@@ -3,7 +3,7 @@
 Summary:	DSSI and LADSPA plugin wrapper for VST plugins
 Name:		dssi-vst
 Version:	0.9.2
-Release:	7
+Release:	8
 License:	GPLv2+
 Group:		Sound
 Url:		http://breakfastquay.com/dssi-vst/
