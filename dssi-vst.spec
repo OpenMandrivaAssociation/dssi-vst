@@ -6,7 +6,7 @@ Version:	0.9.2
 Release:	8
 License:	GPLv2+
 Group:		Sound
-Url:		http://breakfastquay.com/dssi-vst/
+Url:		https://breakfastquay.com/dssi-vst/
 Source0:	http://code.breakfastquay.com/attachments/download/2/%{name}-%{version}.tar.bz2
 BuildRequires:	ladspa-devel
 BuildRequires:	pkgconfig(alsa)
